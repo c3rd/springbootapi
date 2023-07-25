@@ -1,10 +1,8 @@
 package dev.c3rd.supercart.controller;
 
-import dev.c3rd.supercart.model.AuthDTO;
-import dev.c3rd.supercart.model.RegisterDTO;
-import dev.c3rd.supercart.model.User;
-import dev.c3rd.supercart.model.UserRole;
+import dev.c3rd.supercart.model.*;
 import dev.c3rd.supercart.repository.UserRepository;
+import dev.c3rd.supercart.service.ITokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +25,17 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ITokenService tokenService;
+
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthDTO data) {
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(data.username(), data.password());
         Authentication auth = this.authenticationManager.authenticate(usernamePassword);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.generateToken((User) auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     @PostMapping("/register")
